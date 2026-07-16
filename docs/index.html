@@ -1,225 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy - AliExpress Receipt Downloader</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.7;
-      color: #1a1a2e;
-      background: #f8f9fa;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding: 40px 20px;
-      background: #1a1a2e;
-      color: #fff;
-    }
-    header h1 { font-size: 28px; margin-bottom: 8px; }
-    header p { color: #8892b0; font-size: 14px; }
-    .brand {
-      color: #e94560;
-      font-weight: 700;
-      letter-spacing: 2px;
-    }
-    h2 {
-      font-size: 20px;
-      color: #1a1a2e;
-      margin: 30px 0 12px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #e94560;
-    }
-    h3 {
-      font-size: 16px;
-      color: #2d3a5e;
-      margin: 20px 0 8px;
-    }
-    p, li {
-      font-size: 15px;
-      color: #333;
-      margin-bottom: 10px;
-    }
-    ul {
-      padding-left: 24px;
-      margin-bottom: 16px;
-    }
-    li { margin-bottom: 6px; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-      font-size: 14px;
-    }
-    th, td {
-      padding: 10px 14px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background: #1a1a2e;
-      color: #fff;
-      font-weight: 600;
-    }
-    tr:nth-child(even) { background: #f2f2f2; }
-    .highlight {
-      background: #fff3cd;
-      padding: 12px 16px;
-      border-left: 4px solid #ffc107;
-      border-radius: 4px;
-      margin: 16px 0;
-      font-size: 14px;
-    }
-    footer {
-      text-align: center;
-      padding: 20px;
-      margin-top: 40px;
-      color: #8892b0;
-      font-size: 13px;
-      border-top: 1px solid #ddd;
-    }
-    a { color: #e94560; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliExpress Invoice Downloader - Bulk Download Order Receipts | TRDEFI</title>
+    <meta name="description" content="Download AliExpress order receipts in bulk by date range. Free trial available. Save hours every month with our Chrome extension.">
+    <meta name="keywords" content="aliexpress, invoice, receipt, downloader, chrome extension, bulk download, order receipts">
+    <meta property="og:title" content="AliExpress Invoice Downloader - Bulk Download Order Receipts">
+    <meta property="og:description" content="Download AliExpress order receipts in bulk by date range. Free trial available.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://trdefi.github.io/ali-invoice-extension/">
+    <link rel="canonical" href="https://trdefi.github.io/ali-invoice-extension/">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f23; color: #e0e0e0; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+        /* Hero */
+        .hero { text-align: center; padding: 80px 20px 60px; background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); }
+        .hero .badge { display: inline-block; background: #4ade80; color: #0f0f23; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 13px; margin-bottom: 20px; }
+        .hero h1 { font-size: 42px; font-weight: 700; color: #ffffff; margin-bottom: 16px; line-height: 1.2; }
+        .hero h1 span { color: #4ade80; }
+        .hero p { font-size: 18px; color: #a0a0a0; max-width: 600px; margin: 0 auto 30px; }
+        .hero-cta { display: inline-block; background: #4ade80; color: #0f0f23; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; text-decoration: none; margin: 8px; }
+        .hero-cta-secondary { display: inline-block; background: transparent; color: #4ade80; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; text-decoration: none; border: 2px solid #4ade80; margin: 8px; }
+
+        /* Sections */
+        section { padding: 60px 0; }
+        section h2 { font-size: 28px; color: #ffffff; text-align: center; margin-bottom: 40px; }
+        section h2 span { color: #4ade80; }
+
+        /* Features */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+        .feature-card { background: #1a1a2e; border-radius: 12px; padding: 24px; border: 1px solid #2a2a3e; }
+        .feature-card .icon { font-size: 32px; margin-bottom: 12px; }
+        .feature-card h3 { color: #ffffff; font-size: 18px; margin-bottom: 8px; }
+        .feature-card p { color: #a0a0a0; font-size: 14px; }
+
+        /* How It Works */
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 24px; text-align: center; }
+        .step { background: #1a1a2e; border-radius: 12px; padding: 24px; }
+        .step-num { background: #4ade80; color: #0f0f23; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; margin-bottom: 12px; }
+        .step h3 { color: #ffffff; font-size: 16px; margin-bottom: 8px; }
+        .step p { color: #a0a0a0; font-size: 13px; }
+
+        /* Pricing */
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .price-card { background: #1a1a2e; border-radius: 12px; padding: 32px; border: 1px solid #2a2a3e; text-align: center; }
+        .price-card.popular { border-color: #4ade80; }
+        .price-card .label { display: inline-block; background: #4ade80; color: #0f0f23; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+        .price-card h3 { color: #ffffff; font-size: 20px; margin-bottom: 8px; }
+        .price-card .price { font-size: 48px; font-weight: 700; color: #4ade80; margin: 16px 0; }
+        .price-card .price span { font-size: 16px; font-weight: 400; color: #a0a0a0; }
+        .price-card ul { list-style: none; text-align: left; margin: 24px 0; }
+        .price-card li { padding: 8px 0; color: #c0c0c0; font-size: 14px; }
+        .price-card li::before { content: "✓ "; color: #4ade80; font-weight: 700; }
+        .price-card a { display: inline-block; background: #4ade80; color: #0f0f23; padding: 12px 28px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 14px; }
+        .price-card a.secondary { background: transparent; color: #4ade80; border: 2px solid #4ade80; }
+
+        /* FAQ */
+        .faq-item { background: #1a1a2e; border-radius: 8px; padding: 20px; margin-bottom: 12px; }
+        .faq-item h3 { color: #ffffff; font-size: 16px; margin-bottom: 8px; }
+        .faq-item p { color: #a0a0a0; font-size: 14px; }
+
+        /* Footer */
+        footer { background: #1a1a2e; padding: 40px 0; text-align: center; margin-top: 60px; }
+        footer p { color: #666; font-size: 14px; }
+        footer a { color: #4ade80; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+        .footer-links { margin-bottom: 16px; }
+        .footer-links a { margin: 0 12px; }
+    </style>
 </head>
 <body>
-  <header>
-    <div class="brand">TRDEFI</div>
-    <h1>Privacy Policy</h1>
-    <p>AliExpress Receipt Downloader Chrome Extension</p>
-    <p>Last updated: July 14, 2026</p>
-  </header>
 
-  <div class="container">
-    <h2>1. Overview</h2>
-    <p>This Privacy Policy describes how the <strong>AliExpress Receipt Downloader</strong> Chrome extension ("we", "our", "extension") collects, uses, and protects your information. We are committed to protecting your privacy and being transparent about our data practices.</p>
-
-    <h2>2. Data We Collect</h2>
-    <p>Our extension collects minimal data necessary for its core functionality:</p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Data Type</th>
-          <th>Purpose</th>
-          <th>Storage</th>
-          <th>Shared</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>License Key</strong></td>
-          <td>Validate your subscription and grant access to premium features</td>
-          <td>Locally on your device (chrome.storage.local)</td>
-          <td>Gumroad Inc. (for validation only)</td>
-        </tr>
-        <tr>
-          <td><strong>License Type</strong></td>
-          <td>Determine your plan type (Monthly or Free Trial)</td>
-          <td>Locally on your device</td>
-          <td>No</td>
-        </tr>
-        <tr>
-          <td><strong>Download Count</strong></td>
-          <td>Track invoice download usage for Free Trial plan limits</td>
-          <td>Locally on your device</td>
-          <td>No</td>
-        </tr>
-        <tr>
-          <td><strong>Email Address</strong></td>
-          <td>Associated with your Gumroad purchase for license identification</td>
-          <td>Locally on your device</td>
-          <td>Gumroad Inc.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>3. How We Use Your Data</h2>
-    <ul>
-      <li><strong>License Key & Email:</strong> Sent to Gumroad's API (api.gumroad.com) to verify your purchase, activate your license, and periodically re-validate your license status (including refund/dispute detection). We do not store your email beyond local storage.</li>
-      <li><strong>Download Count:</strong> Used locally to enforce the 10-invoice limit for Free Trial subscribers. This data never leaves your device.</li>
-      <li><strong>License Type:</strong> Determines which features are available to you and whether download limits apply.</li>
-    </ul>
-
-    <h2>4. Data We Do NOT Collect</h2>
-    <ul>
-      <li>Browsing history or web activity</li>
-      <li>Personal identification information beyond license data</li>
-      <li>Payment information (handled entirely by Gumroad)</li>
-      <li>Order details, product information, or purchase amounts from AliExpress</li>
-      <li>Login credentials or account passwords</li>
-      <li>IP addresses or location data</li>
-      <li>Analytics or tracking data</li>
-    </ul>
-
-    <h2>5. Third-Party Services</h2>
-
-    <h3>Gumroad Inc.</h3>
-    <p>We use Gumroad for license key management and payment processing. Your license key is sent to Gumroad's API when you activate, and periodically during use (approximately every 10 downloads or every 24 hours) to verify your license is still active and not refunded or disputed.</p>
-    <ul>
-      <li><strong>Service:</strong> <a href="https://gumroad.com" target="_blank">gumroad.com</a></li>
-      <li><strong>Data Sent:</strong> License key, product ID</li>
-      <li><strong>Purpose:</strong> License validation</li>
-      <li><strong>Privacy Policy:</strong> <a href="https://gumroad.com/privacy" target="_blank">gumroad.com/privacy</a></li>
-    </ul>
-
-    <h3>AliExpress</h3>
-    <p>The extension interacts with AliExpress order pages to read order information and download receipts. This interaction occurs entirely within your browser and is initiated by you.</p>
-    <ul>
-      <li><strong>Data Sent:</strong> None (read-only access to pages you already have open)</li>
-      <li><strong>Purpose:</strong> Read order IDs and dates, trigger receipt downloads</li>
-    </ul>
-
-    <h2>6. Data Storage & Security</h2>
-    <ul>
-      <li>All data is stored locally on your device using Chrome's built-in storage API (<code>chrome.storage.local</code>).</li>
-      <li>We do not operate our own servers. Your license key is sent directly to Gumroad's API (api.gumroad.com) for validation — we do not have access to or store these communications.</li>
-      <li>No data is shared with third parties beyond Gumroad for license validation.</li>
-      <li>You can clear all extension data by removing the extension from Chrome.</li>
-    </ul>
-
-    <h2>7. Data Retention</h2>
-    <ul>
-      <li><strong>License data:</strong> Retained until you uninstall the extension or clear extension data.</li>
-      <li><strong>Download count:</strong> Retained until you uninstall the extension or clear extension data.</li>
-      <li><strong>No third-party retention:</strong> Gumroad processes license validation but we do not maintain our own server-side databases containing your data.</li>
-    </ul>
-
-    <h2>8. Children's Privacy</h2>
-    <p>This extension is not directed to children under 13. We do not knowingly collect information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us.</p>
-
-    <h2>9. Changes to This Policy</h2>
-    <p>We may update this Privacy Policy from time to time. Any changes will be reflected in the "Last updated" date above. We encourage you to review this policy periodically. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
-
-    <h2>10. Your Rights</h2>
-    <ul>
-      <li><strong>Access:</strong> You can view all data stored by the extension in Chrome's developer tools (Application → Storage → Extension).</li>
-      <li><strong>Deletion:</strong> You can delete all data by uninstalling the extension.</li>
-      <li><strong>Opt-out:</strong> You may choose not to use the extension at any time.</li>
-    </ul>
-
-    <h2>11. Contact</h2>
-    <p>If you have questions about this Privacy Policy, please contact us:</p>
-    <ul>
-      <li><strong>GitHub:</strong> <a href="https://github.com/TRDEFI/ali-invoice-extension/issues" target="_blank">github.com/TRDEFI/ali-invoice-extension/issues</a></li>
-      <li><strong>Email:</strong> info@trdefi.com</li>
-    </ul>
-
-    <div class="highlight">
-      <strong>Summary:</strong> We collect only the minimum data needed to validate your license and track download limits. Your data stays on your device. We never sell or share your data with third parties (except Gumroad for license validation). We do not operate our own servers. We collect no analytics or tracking data.
+<!-- Hero -->
+<div class="hero">
+    <div class="container">
+        <div class="badge">Chrome Extension</div>
+        <h1>Download AliExpress <span>Invoice Receipts</span> in Bulk</h1>
+        <p>Tired of downloading receipts one by one? Select a date range, click ANALYZE, and download all your order receipts in seconds.</p>
+        <a href="https://trdefi.gumroad.com/l/FreeTrial" class="hero-cta">Get Free Trial (10 Invoices)</a>
+        <a href="https://trdefi.gumroad.com/l/monthly" class="hero-cta-secondary">$10/month - Unlimited</a>
     </div>
-  </div>
+</div>
 
-  <footer>
-    <p>&copy; 2026 <span class="brand">TRDEFI</span>. All rights reserved.</p>
-  </footer>
+<!-- Features -->
+<section>
+    <div class="container">
+        <h2>Why <span>TRDEFI</span>?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="icon">📅</div>
+                <h3>Date Range Filter</h3>
+                <p>Pick exactly which orders to download. Select start and end dates to get only the receipts you need.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">⚡</div>
+                <h3>Bulk Processing</h3>
+                <p>Download hundreds of receipts in one session. No more clicking through each order individually.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📊</div>
+                <h3>Progress Tracking</h3>
+                <p>Real-time progress bar with success/fail counts. Know exactly where you stand.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🛑</div>
+                <h3>Stop &amp; Restart</h3>
+                <p>Cancel anytime and start fresh. No complicated resume logic that breaks.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🌙</div>
+                <h3>Dark Mode</h3>
+                <p>Easy on the eyes. Professional dark theme that looks great.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔒</div>
+                <h3>Privacy First</h3>
+                <p>No browsing data collected. No analytics. No tracking. All data stays on your device.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section style="background: #1a1a2e;">
+    <div class="container">
+        <h2>How It <span>Works</span></h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h3>Install</h3>
+                <p>Add the extension from Chrome Web Store</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h3>Activate</h3>
+                <p>Enter your license key from Gumroad</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h3>Select Dates</h3>
+                <p>Pick the date range for your orders</p>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <h3>Analyze</h3>
+                <p>The extension finds all orders in that period</p>
+            </div>
+            <div class="step">
+                <div class="step-num">5</div>
+                <h3>Download</h3>
+                <p>Click DOWNLOAD ALL and receipts save to your computer</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section>
+    <div class="container">
+        <h2>Simple <span>Pricing</span></h2>
+        <div class="pricing-grid">
+            <div class="price-card">
+                <h3>Free Trial</h3>
+                <div class="price">$0</div>
+                <ul>
+                    <li>10 invoice downloads</li>
+                    <li>No credit card required</li>
+                    <li>No time limit</li>
+                    <li>Full feature access</li>
+                </ul>
+                <a href="https://trdefi.gumroad.com/l/FreeTrial" class="secondary">Get Free License</a>
+            </div>
+            <div class="price-card popular">
+                <div class="label">Most Popular</div>
+                <h3>Monthly Plan</h3>
+                <div class="price">$10<span>/month</span></div>
+                <ul>
+                    <li>Unlimited invoice downloads</li>
+                    <li>Cancel anytime</li>
+                    <li>Automatic updates</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="https://trdefi.gumroad.com/l/monthly">Subscribe Now</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section style="background: #1a1a2e;">
+    <div class="container">
+        <h2>Frequently Asked <span>Questions</span></h2>
+        <div class="faq-item">
+            <h3>Is it safe?</h3>
+            <p>Yes. We don't collect any personal data beyond license validation. No browsing data, no analytics, no tracking. All data stays on your device.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Does AliExpress need to be in English?</h3>
+            <p>Yes. The extension parses order dates in English format (e.g., "Jul 13, 2026"). Please set your AliExpress language to English in the top-right corner.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Can I cancel my subscription?</h3>
+            <p>Yes. Cancel anytime through Gumroad. You keep access until the end of your billing period.</p>
+        </div>
+        <div class="faq-item">
+            <h3>What happens after the free trial?</h3>
+            <p>After 10 downloads, the extension stops working until you subscribe to the Monthly Plan. Your 10 free downloads never expire.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Is it open source?</h3>
+            <p>Yes. The code is available on <a href="https://github.com/TRDEFI/ali-invoice-extension" style="color: #4ade80;">GitHub</a>. You can review it yourself.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://trdefi.gumroad.com/l/FreeTrial">Free Trial</a>
+            <a href="https://trdefi.gumroad.com/l/monthly">Monthly Plan</a>
+            <a href="https://github.com/TRDEFI/ali-invoice-extension">GitHub</a>
+            <a href="https://chromewebstore.google.com/detail/ppfcaekfldmfngbeeflafkokdabnffee">Chrome Web Store</a>
+            <a href="privacy.html">Privacy Policy</a>
+        </div>
+        <p>&copy; 2026 TRDEFI LTD. All rights reserved.</p>
+    </div>
+</footer>
+
 </body>
 </html>
