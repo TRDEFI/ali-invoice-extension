@@ -7,7 +7,7 @@ let popupPort = null;
 
 // Gumroad product IDs
 const GUMROAD_MONTHLY_ID = "BuuG7LGEO7yEPQgNQE3J2A==";
-const GUMROAD_TRIAL_ID = "aefs_yn9G1JpvUk_DRWlXw==";
+const GUMROAD_TRIAL_ID = "O5BcIGctkjDqMBf-CGrvAg==";
 
 // Keep service worker alive while popup is open
 chrome.runtime.onConnect.addListener((port) => {

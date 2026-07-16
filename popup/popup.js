@@ -324,7 +324,7 @@ async function validateLicense(key) {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        product_id: "aefs_yn9G1JpvUk_DRWlXw==",
+        product_id: "O5BcIGctkjDqMBf-CGrvAg==",
         license_key: key,
         increment_uses_count: "true"
       })
