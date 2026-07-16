@@ -360,7 +360,7 @@ async function setLicenseData(data) {
 async function validateLicenseServerSide() {
   const licenseData = await getLicenseData();
   if (!licenseData || !licenseData.licenseKey) {
-    return { valid: false, reason: "No license found. Please activate." };
+    return { valid: false, reason: "Lisans bulunamadi / No license found. Aktive edin / Please activate." };
   }
 
   // Check cache freshness
@@ -368,7 +368,7 @@ async function validateLicenseServerSide() {
   if (licenseData.lastValidation && (now - licenseData.lastValidation) < VALIDATION_CACHE_MS) {
     // Cache is fresh — use cached result
     if (licenseData.cachedInvalid) {
-      return { valid: false, reason: "License invalid (cached). Please reactivate." };
+      return { valid: false, reason: "Lisans gecersiz / License invalid (cached). Tekrar aktive edin / Please reactivate." };
     }
     return { valid: true, type: licenseData.licenseType };
   }
@@ -385,7 +385,7 @@ async function validateLicenseServerSide() {
     productId = GUMROAD_TRIAL_ID;
     expectedType = "free_trial";
   } else {
-    return { valid: false, reason: "Unknown license type." };
+    return { valid: false, reason: "Bilinmeyen lisans turu / Unknown license type." };
   }
 
   try {
@@ -407,20 +407,20 @@ async function validateLicenseServerSide() {
       // License invalid
       licenseData.cachedInvalid = true;
       await setLicenseData(licenseData);
-      return { valid: false, reason: "License key invalid. Please reactivate." };
+      return { valid: false, reason: "Lisans gecersiz / License key invalid. Tekrar aktive edin / Please reactivate." };
     }
 
     // Check for refund or dispute
     if (data.purchase?.refunded) {
       licenseData.cachedInvalid = true;
       await setLicenseData(licenseData);
-      return { valid: false, reason: "This purchase has been refunded. License deactivated." };
+      return { valid: false, reason: "Satin alma iade edilmis / Purchase refunded. Lisans iptal edildi / License deactivated." };
     }
 
     if (data.purchase?.disputed) {
       licenseData.cachedInvalid = true;
       await setLicenseData(licenseData);
-      return { valid: false, reason: "This purchase is under dispute. License deactivated." };
+      return { valid: false, reason: "Satin alma dispute altinda / Purchase disputed. Lisans iptal edildi / License deactivated." };
     }
 
     // Valid — update cache
@@ -433,7 +433,7 @@ async function validateLicenseServerSide() {
     console.error("Server-side validation error:", e);
     // Network error — use stale cache if available
     if (licenseData.cachedInvalid) {
-      return { valid: false, reason: "License invalid (cached). Please check your connection." };
+      return { valid: false, reason: "Lisans gecersiz / License invalid. Baglantinizi kontrol edin / Check your connection." };
     }
     // No cached result — allow but log warning
     return { valid: true, type: licenseData.licenseType, warning: "Could not validate license online." };
@@ -448,7 +448,7 @@ async function checkDownloadLimit() {
   const downloadCount = licenseData?.downloadCount || 0;
 
   if (!licenseType) {
-    return { allowed: false, reason: "No license found. Please activate." };
+    return { allowed: false, reason: "Lisans bulunamadi / No license found. Aktive edin / Please activate." };
   }
 
   if (licenseType === "monthly") {
@@ -459,7 +459,7 @@ async function checkDownloadLimit() {
   if ((licenseType === "free_trial" || licenseType === "daily_trial") && downloadCount >= TRIAL_LIMIT) {
     return {
       allowed: false,
-      reason: `Free trial limit reached (${TRIAL_LIMIT} invoices). Subscribe to Monthly for unlimited.`
+      reason: `Deneme limiti doldu / Free trial limit reached (${TRIAL_LIMIT} invoices). Aylik plana gecin / Subscribe to Monthly.`
     };
   }
 
