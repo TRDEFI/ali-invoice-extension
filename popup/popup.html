@@ -9,28 +9,33 @@
   <div class="brand">TRDEFI</div>
   <button id="btn-expand" class="btn-expand" title="Open in full tab view">⛶</button>
 
-  <!-- Step 0: License -->
+  <!-- Step 0: Email Entry -->
   <div id="step-license" style="display:none">
-    <h2>Activate Your License</h2>
+    <h2 id="activate-title">Activate Your Access</h2>
     <div class="plan-cards">
       <div class="plan-card free-trial">
         <div class="plan-badge">FREE</div>
-        <div class="plan-name">FREE TRIAL</div>
+        <div class="plan-name" id="free-trial-name">FREE TRIAL</div>
         <div class="plan-price">$0</div>
-        <div class="plan-feature">10 invoices free</div>
-        <button class="btn plan-btn" id="btn-subscribe-free-trial">Start Free</button>
+        <div class="plan-feature" id="free-trial-feature">10 invoices free</div>
       </div>
       <div class="plan-card monthly">
-        <div class="plan-name">MONTHLY</div>
+        <div class="plan-name" id="monthly-name">MONTHLY</div>
         <div class="plan-price">$10<span>/mo</span></div>
-        <div class="plan-feature">Unlimited invoices</div>
+        <div class="plan-feature" id="monthly-feature">Unlimited invoices</div>
         <button class="btn plan-btn" id="btn-subscribe-monthly">Subscribe</button>
       </div>
     </div>
-    <div class="card">
-      <label>License Key</label>
-      <input type="text" id="license-key" placeholder="Paste your license key here">
-      <button id="btn-activate" class="btn primary">ACTIVATE</button>
+    <div class="card email-card">
+      <label id="email-label">Email Address</label>
+      <input type="email" id="user-email" placeholder="your@email.com">
+      <button id="btn-activate" class="btn primary">START FREE</button>
+    </div>
+    <div class="or-divider">─ VEYA / OR ─</div>
+    <div class="card license-key-card">
+      <label id="monthly-label">Monthly License Key</label>
+      <input type="text" id="license-key" placeholder="XXXX-XXXX-XXXX-XXXX">
+      <button id="btn-activate-monthly" class="btn primary">AKTIVE ET / ACTIVATE</button>
     </div>
     <div id="license-error" class="license-msg error" style="display:none"></div>
   </div>
@@ -40,6 +45,7 @@
     <div id="license-bar" class="license-bar">
       <span id="license-type" class="type"></span>
       <span id="license-limit" class="limit"></span>
+      <a href="#" id="change-license" class="change-license">Change</a>
     </div>
     <h2>AliExpress Receipt Downloader</h2>
     <div class="card">

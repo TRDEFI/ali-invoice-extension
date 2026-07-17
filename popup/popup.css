@@ -394,6 +394,51 @@ label {
   border-color: #e94560;
 }
 
+/* Email Input */
+.email-card {
+  text-align: center;
+}
+
+#user-email {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #2d3a5e;
+  border-radius: 6px;
+  background: #0f1923;
+  color: #eee;
+  font-size: 13px;
+  margin-bottom: 8px;
+  outline: none;
+}
+
+#user-email:focus {
+  border-color: #e94560;
+}
+
+#user-email::placeholder {
+  color: #8892b0;
+}
+
+/* Or Divider */
+.or-divider {
+  text-align: center;
+  color: #8892b0;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 6px 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Monthly License Key Card */
+.license-key-card {
+  margin-top: 0;
+}
+
+.license-key-card label {
+  text-align: left;
+}
+
 .license-msg {
   text-align: center;
   font-size: 12px;
@@ -448,6 +493,61 @@ label {
 
 .license-bar .limit.danger {
   color: #e94560;
+}
+
+.change-license {
+  font-size: 10px;
+  color: #8892b0;
+  text-decoration: none;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.change-license:hover {
+  color: #e94560;
+  text-decoration: underline;
+}
+
+/* Upgrade Card */
+.upgrade-card {
+  background: linear-gradient(135deg, #16213e, #1a1a2e);
+  border: 1px solid #e94560;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.upgrade-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e94560;
+  margin-bottom: 6px;
+}
+
+.upgrade-msg {
+  font-size: 11px;
+  color: #8892b0;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.upgrade-feature {
+  font-size: 11px;
+  color: #4ade80;
+  margin-bottom: 10px;
+}
+
+.upgrade-btn {
+  width: 100%;
+  background: #e94560;
+  color: #fff;
+}
+
+.upgrade-btn:hover {
+  background: #d63851;
 }
 
 /* Tab mode: opened with ?tab=1 */

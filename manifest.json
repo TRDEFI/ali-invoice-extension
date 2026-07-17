@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AliExpress Receipt Downloader",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Download AliExpress order receipts by date range",
   "permissions": [
     "storage",
@@ -10,7 +10,8 @@
   ],
   "host_permissions": [
     "*://*.aliexpress.com/p/order/*",
-    "*://api.gumroad.com/*"
+    "*://api.gumroad.com/*",
+    "*://*.supabase.co/*"
   ],
   "background": {
     "service_worker": "background.js"

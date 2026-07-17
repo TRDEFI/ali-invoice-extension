@@ -95,7 +95,7 @@
     <div class="brand">TRDEFI</div>
     <h1>Privacy Policy</h1>
     <p>AliExpress Receipt Downloader Chrome Extension</p>
-    <p>Last updated: July 5, 2026</p>
+    <p>Last updated: July 17, 2026</p>
   </header>
 
   <div class="container">
@@ -123,29 +123,29 @@
         </tr>
         <tr>
           <td><strong>License Type</strong></td>
-          <td>Determine your plan type (Monthly or Daily Trial)</td>
+          <td>Determine your plan type (Monthly or Free Trial)</td>
           <td>Locally on your device</td>
           <td>No</td>
         </tr>
         <tr>
           <td><strong>Download Count</strong></td>
-          <td>Track invoice download usage for Daily Trial plan limits</td>
+          <td>Track invoice download usage for Free Trial plan limits</td>
           <td>Locally on your device</td>
           <td>No</td>
         </tr>
         <tr>
           <td><strong>Email Address</strong></td>
-          <td>Associated with your Gumroad purchase for license identification</td>
-          <td>Locally on your device</td>
-          <td>Gumroad Inc.</td>
+          <td>Used for Free Trial registration and one-free-trial-per-email enforcement</td>
+          <td>Supabase cloud database (gnqwcozjqqpmfbhmvpar.supabase.co)</td>
+          <td>Supabase Inc. (for registration only)</td>
         </tr>
       </tbody>
     </table>
 
     <h2>3. How We Use Your Data</h2>
     <ul>
-      <li><strong>License Key & Email:</strong> Sent to Gumroad's API (api.gumroad.com) solely to verify your purchase and activate your license. We do not store your email beyond local storage.</li>
-      <li><strong>Download Count:</strong> Used locally to enforce the 30-invoice limit for Daily Trial subscribers. This data never leaves your device.</li>
+      <li><strong>License Key & Email:</strong> Your license key is sent to Gumroad's API (api.gumroad.com) for Monthly plan validation. Your email address is sent to Supabase (gnqwcozjqqpmfbhmvpar.supabase.co) for Free Trial registration and duplicate-email prevention. We do not store your email beyond these services.</li>
+      <li><strong>Download Count:</strong> Tracked both locally and on Supabase to enforce the 10-invoice limit for Free Trial subscribers. Monthly plan users have unlimited downloads.</li>
       <li><strong>License Type:</strong> Determines which features are available to you and whether download limits apply.</li>
     </ul>
 
@@ -162,8 +162,17 @@
 
     <h2>5. Third-Party Services</h2>
 
+    <h3>Supabase Inc.</h3>
+    <p>We use Supabase for Free Trial email registration and duplicate-email prevention. Your email address is stored in Supabase's cloud database to enforce the one-free-trial-per-email policy and track download counts.</p>
+    <ul>
+      <li><strong>Service:</strong> <a href="https://supabase.com" target="_blank">supabase.com</a></li>
+      <li><strong>Data Sent:</strong> Email address, license type, download count</li>
+      <li><strong>Purpose:</strong> Free Trial registration, duplicate-email prevention, download limit tracking</li>
+      <li><strong>Privacy Policy:</strong> <a href="https://supabase.com/privacy" target="_blank">supabase.com/privacy</a></li>
+    </ul>
+
     <h3>Gumroad Inc.</h3>
-    <p>We use Gumroad for license key management and payment processing. When you activate your license, your license key is sent to Gumroad's API for verification.</p>
+    <p>We use Gumroad for Monthly plan license key validation and payment processing. Your license key is sent to Gumroad's API when you activate, and periodically during use (approximately every 24 hours) to verify your license is still active and not refunded or disputed.</p>
     <ul>
       <li><strong>Service:</strong> <a href="https://gumroad.com" target="_blank">gumroad.com</a></li>
       <li><strong>Data Sent:</strong> License key, product ID</li>
@@ -181,8 +190,8 @@
     <h2>6. Data Storage & Security</h2>
     <ul>
       <li>All data is stored locally on your device using Chrome's built-in storage API (<code>chrome.storage.local</code>).</li>
-      <li>No data is transmitted to our servers (we do not operate any servers).</li>
-      <li>No data is shared with third parties beyond Gumroad for license validation.</li>
+      <li>We do not operate our own servers. Your license key is sent to Gumroad's API and your email is sent to Supabase's API for validation — we do not have access to or store these communications.</li>
+      <li>No data is shared with third parties beyond Gumroad (Monthly plan validation) and Supabase (Free Trial registration).</li>
       <li>You can clear all extension data by removing the extension from Chrome.</li>
     </ul>
 
@@ -190,7 +199,7 @@
     <ul>
       <li><strong>License data:</strong> Retained until you uninstall the extension or clear extension data.</li>
       <li><strong>Download count:</strong> Retained until you uninstall the extension or clear extension data.</li>
-      <li><strong>No server-side data:</strong> We do not maintain any databases or servers containing your data.</li>
+      <li><strong>No third-party retention:</strong> Gumroad processes license validation but we do not maintain our own server-side databases containing your data.</li>
     </ul>
 
     <h2>8. Children's Privacy</h2>
@@ -210,11 +219,11 @@
     <p>If you have questions about this Privacy Policy, please contact us:</p>
     <ul>
       <li><strong>GitHub:</strong> <a href="https://github.com/TRDEFI/ali-invoice-extension/issues" target="_blank">github.com/TRDEFI/ali-invoice-extension/issues</a></li>
-      <li><strong>Email:</strong> trdefi@gmail.com</li>
+      <li><strong>Email:</strong> info@trdefi.com</li>
     </ul>
 
     <div class="highlight">
-      <strong>Summary:</strong> We collect only the minimum data needed to validate your license and track download limits. Your data stays on your device. We never sell or share your data with third parties (except Gumroad for license validation). We have no servers and no analytics.
+      <strong>Summary:</strong> We collect only the minimum data needed to validate your license and track download limits. Free Trial emails are stored on Supabase for duplicate prevention. Monthly license keys are validated via Gumroad. Your data stays on your device (except email on Supabase for Free Trial). We never sell or share your data. We do not operate our own servers. We collect no analytics or tracking data.
     </div>
   </div>
 

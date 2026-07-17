@@ -1,15 +1,17 @@
 const STORAGE_KEY = "downloadState";
 const ORDERS_URL = "https://www.aliexpress.com/p/order/index.html";
 const TRIAL_LIMIT = 10;
-const VALIDATION_CACHE_MS = 24 * 60 * 60 * 1000; // 24 hours
+const VALIDATION_CACHE_MS = 24 * 60 * 60 * 1000;
 let keepAlivePorts = [];
 let popupPort = null;
 
-// Gumroad product IDs
-const GUMROAD_MONTHLY_ID = "BuuG7LGEO7yEPQgNQE3J2A==";
-const GUMROAD_TRIAL_ID = "O5BcIGctkjDqMBf-CGrvAg==";
+// Supabase config
+const SUPABASE_URL = "https://gnqwcozjqqpmfbhmvpar.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducXdjb3pqcXFwbWZiaG12cGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTAxNDYsImV4cCI6MjA5OTg2NjE0Nn0.sFilRPT96L2dgQqm6dAZNqoqls8g9UEPDyny2IDuyzU";
 
-// Keep service worker alive while popup is open
+// Gumroad product IDs (monthly only)
+const GUMROAD_MONTHLY_ID = "BuuG7LGEO7yEPQgNQE3J2A==";
+
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === "popup") {
     popupPort = port;
@@ -26,6 +28,60 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 const HANDLERS = {};
+
+// ===== EMAIL OPERATIONS =====
+
+HANDLERS.checkEmail = async (msg) => {
+  const { email } = msg;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(email)}&select=id`, {
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const data = await res.json();
+    return { exists: data.length > 0 };
+  } catch (e) {
+    console.error("Supabase checkEmail error:", e);
+    return { exists: false, error: e.message };
+  }
+};
+
+HANDLERS.registerEmail = async (msg) => {
+  const { email } = msg;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ext_users`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify({
+        email: email,
+        invoice_count: 0,
+        license_type: "free_trial"
+      })
+    });
+    if (res.ok) {
+      return { success: true };
+    }
+    const err = await res.json();
+    if (err.code === "23505") {
+      // Unique constraint violation - email already exists
+      return { success: false, error: "Email already registered" };
+    }
+    return { success: false, error: err.message || "Registration failed" };
+  } catch (e) {
+    console.error("Supabase registerEmail error:", e);
+    return { success: false, error: e.message };
+  }
+};
+
+// ===== ORDER PROCESSING =====
 
 HANDLERS.start = async (msg) => {
   const { fromDate, toDate } = msg;
@@ -71,19 +127,11 @@ HANDLERS.startDownload = async (msg) => {
   const state = await loadState();
   if (!state || state.orders.length === 0) return { ok: false, error: "No orders to process" };
 
-  // Server-side license validation before download
-  const licenseCheck = await validateLicenseServerSide();
-  if (!licenseCheck.valid) {
-    const reason = licenseCheck.reason || "License validation failed. Please reactivate.";
-    sendToPopup({ type: "log", text: reason });
-    return { ok: false, error: reason };
-  }
-
   // Check download limit
   const limitCheck = await checkDownloadLimit();
   if (!limitCheck.allowed) {
     sendToPopup({ type: "log", text: limitCheck.reason });
-    sendToPopup({ type: "log", text: "Subscribe to Monthly plan for unlimited downloads." });
+    sendToPopup({ type: "complete", ok: 0, fail: 0, orders: state.orders, errors: [], limitReached: true });
     return { ok: false, error: limitCheck.reason };
   }
 
@@ -98,27 +146,34 @@ HANDLERS.startDownload = async (msg) => {
   let tab = await findOrdersTab();
   if (!tab) { await abortWithError(state, "Orders tab not found"); return; }
 
-  // Track downloads completing
   let downloadCompleted = false;
   const downloadListener = (delta) => {
     if (delta.state && delta.state.current === "complete") {
-      downloadCompleted = true;
+      chrome.downloads.search({ id: delta.id }, (items) => {
+        if (items && items[0] && items[0].filename && /OrderSummary|receipt|invoice|tax/i.test(items[0].filename)) {
+          downloadCompleted = true;
+        }
+      });
     }
   };
   chrome.downloads.onChanged.addListener(downloadListener);
 
-  // Process orders sequentially in a loop
   for (let i = 0; i < state.orders.length; i++) {
     const s = await loadState();
     if (!s || s.phase !== "DOWNLOADING" || s.stopped) break;
 
-    // Re-validate license every 10 downloads
-    if (i > 0 && i % 10 === 0) {
-      const recheck = await validateLicenseServerSide();
-      if (!recheck.valid) {
-        sendToPopup({ type: "log", text: recheck.reason || "License invalid. Stopping download." });
-        break;
+    // Check limit before each order
+    const limitData = await getLicenseData();
+    if (limitData && limitData.licenseType === "free_trial" && (limitData.downloadCount || 0) >= TRIAL_LIMIT) {
+      sendToPopup({ type: "log", text: `Free trial limit reached (${TRIAL_LIMIT}/${TRIAL_LIMIT})` });
+      const limitState = await loadState();
+      if (limitState) {
+        limitState.phase = "COMPLETE";
+        limitState.current = null;
+        await saveState(limitState);
+        sendToPopup({ type: "complete", ok: limitState.ok, fail: limitState.fail, orders: limitState.orders, errors: limitState.errors, limitReached: true });
       }
+      break;
     }
 
     const order = s.orders[i];
@@ -129,11 +184,9 @@ HANDLERS.startDownload = async (msg) => {
     sendToPopup({ type: "progress", current: order.orderId, ok: s.ok, fail: s.fail, index: i, total: s.orders.length });
 
     try {
-      // Check stopped before each step
       let check = await loadState();
       if (!check || check.stopped) break;
 
-      // Navigate to detail page
       await sendToTab(tab.id, { type: "navigateToDetail", orderId: order.orderId });
       await waitForPage(tab.id, 15000);
 
@@ -142,23 +195,29 @@ HANDLERS.startDownload = async (msg) => {
 
       await waitForContentScript(tab.id);
 
-      // Click Receipt button
       const receiptResult = await sendToTab(tab.id, { type: "clickReceipt" });
       if (receiptResult.error) throw new Error(receiptResult.error);
 
       check = await loadState();
       if (!check || check.stopped) break;
 
-      // Wait for tax iframe
-      await sleep(6000);
+      await sleep(10000);
 
       check = await loadState();
       if (!check || check.stopped) break;
 
-      const iframeResult = await sendToTab(tab.id, { type: "waitForIframe" });
-      if (iframeResult.error) throw new Error(iframeResult.error);
+      let iframeResult = await sendToTab(tab.id, { type: "waitForIframe" });
+      if (iframeResult.error) {
+        // Retry once after short delay
+        check = await loadState();
+        if (!check || check.stopped) break;
+        await sleep(3000);
+        check = await loadState();
+        if (!check || check.stopped) break;
+        iframeResult = await sendToTab(tab.id, { type: "waitForIframe" });
+        if (iframeResult.error) throw new Error(iframeResult.error);
+      }
 
-      // Click Download in iframe
       await sleep(2000);
 
       check = await loadState();
@@ -169,10 +228,23 @@ HANDLERS.startDownload = async (msg) => {
 
       sendToPopup({ type: "log", text: `Download triggered for ${order.orderId}` });
 
-      // Wait for download to complete (timeout 25s)
       let waited = 0;
       while (waited < 25000) {
         if (downloadCompleted) break;
+        if (waited > 0 && waited % 2000 === 0) {
+          try {
+            const recentDownloads = await chrome.downloads.search({
+              orderBy: ["-startTime"],
+              limit: 3
+            });
+            for (const d of recentDownloads) {
+              if (d.filename && /OrderSummary|receipt|invoice|tax/i.test(d.filename) && d.state === "complete") {
+                downloadCompleted = true;
+                break;
+              }
+            }
+          } catch (_) {}
+        }
         check = await loadState();
         if (!check || check.stopped) break;
         await sleep(1000);
@@ -188,7 +260,6 @@ HANDLERS.startDownload = async (msg) => {
       await incrementDownloadCount();
       sendToPopup({ type: "progress", ok: s.ok, fail: s.fail });
 
-      // Go back to orders page
       await sendToTab(tab.id, { type: "goBack" });
       await waitForPage(tab.id, 15000);
 
@@ -204,7 +275,6 @@ HANDLERS.startDownload = async (msg) => {
       await saveState(s);
       sendToPopup({ type: "progress", ok: s.ok, fail: s.fail });
       sendToPopup({ type: "log", text: `FAIL: ${order.orderId} - ${e.message}` });
-      // Try to recover: go back to orders
       try {
         await sendToTab(tab.id, { type: "goBack" });
         await waitForPage(tab.id, 15000);
@@ -214,16 +284,17 @@ HANDLERS.startDownload = async (msg) => {
 
   chrome.downloads.onChanged.removeListener(downloadListener);
 
-  // All done
   const finalState = await loadState();
   if (finalState) {
     if (finalState.stopped) {
       sendToPopup({ type: "stateChange", state: { phase: "IDLE" } });
-    } else {
+    } else if (finalState.phase !== "COMPLETE") {
       finalState.phase = "COMPLETE";
       finalState.current = null;
       await saveState(finalState);
-      sendToPopup({ type: "complete", ok: finalState.ok, fail: finalState.fail, orders: finalState.orders, errors: finalState.errors });
+      const finalLicense = await getLicenseData();
+      const limitReached = finalLicense && finalLicense.licenseType === "free_trial" && (finalLicense.downloadCount || 0) >= TRIAL_LIMIT;
+      sendToPopup({ type: "complete", ok: finalState.ok, fail: finalState.fail, orders: finalState.orders, errors: finalState.errors, limitReached });
     }
   }
 };
@@ -246,10 +317,17 @@ HANDLERS.getState = async () => {
   return (await loadState()) || { phase: "IDLE" };
 };
 
-// Handle server-side validation request from popup
+HANDLERS.clearState = async () => {
+  await chrome.storage.session.remove(STORAGE_KEY);
+  return { ok: true };
+};
+
+// Handle server-side validation request from popup (monthly only)
 HANDLERS.validateLicense = async (msg) => {
   return await validateLicenseServerSide();
 };
+
+// ===== HELPERS =====
 
 async function sendToTab(tabId, msg) {
   try {
@@ -264,7 +342,6 @@ function sendToPopup(msg) {
     try { popupPort.postMessage(msg); } catch (_) {}
     return;
   }
-  // Fallback: send to any tab with popup.html open (tab mode)
   chrome.tabs.query({}, (tabs) => {
     for (const tab of tabs) {
       if (tab.url && tab.url.includes("popup/popup.html")) {
@@ -344,9 +421,8 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-// ===== LICENSE VALIDATION =====
+// ===== LICENSE VALIDATION (Monthly only via Gumroad) =====
 
-// Plain storage — no obfuscation (obfuscation is security theater)
 async function getLicenseData() {
   const data = await chrome.storage.local.get("licenseData");
   return data.licenseData || null;
@@ -356,88 +432,100 @@ async function setLicenseData(data) {
   await chrome.storage.local.set({ licenseData: data });
 }
 
-// Server-side license validation with 24h cache
 async function validateLicenseServerSide() {
   const licenseData = await getLicenseData();
-  if (!licenseData || !licenseData.licenseKey) {
-    return { valid: false, reason: "Lisans bulunamadi / No license found. Aktive edin / Please activate." };
+  if (!licenseData) {
+    return { valid: false, reason: "No license found. Please activate." };
   }
 
-  // Check cache freshness
-  const now = Date.now();
-  if (licenseData.lastValidation && (now - licenseData.lastValidation) < VALIDATION_CACHE_MS) {
-    // Cache is fresh — use cached result
-    if (licenseData.cachedInvalid) {
-      return { valid: false, reason: "Lisans gecersiz / License invalid (cached). Tekrar aktive edin / Please reactivate." };
+  // Free trial - validate via Supabase
+  if (licenseData.licenseType === "free_trial") {
+    if (!licenseData.email) {
+      return { valid: false, reason: "No email found. Please activate." };
     }
-    return { valid: true, type: licenseData.licenseType };
+    // Check Supabase for email existence and count
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(licenseData.email)}&select=invoice_count`, {
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
+        }
+      });
+      const data = await res.json();
+      if (data.length === 0) {
+        return { valid: false, reason: "Email not found. Please activate." };
+      }
+      // Sync download count from Supabase
+      licenseData.downloadCount = data[0].invoice_count || 0;
+      await setLicenseData(licenseData);
+      return { valid: true, type: "free_trial" };
+    } catch (e) {
+      console.error("Supabase validation error:", e);
+      // Allow on network error
+      return { valid: true, type: "free_trial", warning: "Could not validate online." };
+    }
   }
 
-  // Cache stale — validate with Gumroad API
-  const key = licenseData.licenseKey;
-  let productId = null;
-  let expectedType = null;
-
+  // Monthly - validate via Gumroad
   if (licenseData.licenseType === "monthly") {
-    productId = GUMROAD_MONTHLY_ID;
-    expectedType = "monthly";
-  } else if (licenseData.licenseType === "free_trial" || licenseData.licenseType === "daily_trial") {
-    productId = GUMROAD_TRIAL_ID;
-    expectedType = "free_trial";
-  } else {
-    return { valid: false, reason: "Bilinmeyen lisans turu / Unknown license type." };
+    const now = Date.now();
+    if (licenseData.lastValidation && (now - licenseData.lastValidation) < VALIDATION_CACHE_MS) {
+      if (licenseData.cachedInvalid) {
+        return { valid: false, reason: "License invalid (cached)." };
+      }
+      return { valid: true, type: "monthly" };
+    }
+
+    const key = licenseData.licenseKey;
+    if (!key) {
+      return { valid: false, reason: "No license key found." };
+    }
+
+    try {
+      const res = await fetch("https://api.gumroad.com/v2/licenses/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          product_id: GUMROAD_MONTHLY_ID,
+          license_key: key,
+          increment_uses_count: "false"
+        })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        licenseData.cachedInvalid = true;
+        await setLicenseData(licenseData);
+        return { valid: false, reason: "License key invalid." };
+      }
+
+      if (data.purchase?.refunded) {
+        licenseData.cachedInvalid = true;
+        await setLicenseData(licenseData);
+        return { valid: false, reason: "Purchase refunded. License deactivated." };
+      }
+
+      if (data.purchase?.disputed) {
+        licenseData.cachedInvalid = true;
+        await setLicenseData(licenseData);
+        return { valid: false, reason: "Purchase disputed. License deactivated." };
+      }
+
+      licenseData.cachedInvalid = false;
+      licenseData.lastValidation = now;
+      await setLicenseData(licenseData);
+      return { valid: true, type: "monthly" };
+    } catch (e) {
+      console.error("Monthly validation error:", e);
+      if (licenseData.cachedInvalid) {
+        return { valid: false, reason: "License invalid. Check connection." };
+      }
+      return { valid: true, type: "monthly", warning: "Could not validate online." };
+    }
   }
 
-  try {
-    const res = await fetch("https://api.gumroad.com/v2/licenses/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        product_id: productId,
-        license_key: key,
-        increment_uses_count: "false" // Don't increment on validation check
-      })
-    });
-    const data = await res.json();
-
-    // Update cache
-    licenseData.lastValidation = now;
-
-    if (!data.success) {
-      // License invalid
-      licenseData.cachedInvalid = true;
-      await setLicenseData(licenseData);
-      return { valid: false, reason: "Lisans gecersiz / License key invalid. Tekrar aktive edin / Please reactivate." };
-    }
-
-    // Check for refund or dispute
-    if (data.purchase?.refunded) {
-      licenseData.cachedInvalid = true;
-      await setLicenseData(licenseData);
-      return { valid: false, reason: "Satin alma iade edilmis / Purchase refunded. Lisans iptal edildi / License deactivated." };
-    }
-
-    if (data.purchase?.disputed) {
-      licenseData.cachedInvalid = true;
-      await setLicenseData(licenseData);
-      return { valid: false, reason: "Satin alma dispute altinda / Purchase disputed. Lisans iptal edildi / License deactivated." };
-    }
-
-    // Valid — update cache
-    licenseData.cachedInvalid = false;
-    licenseData.lastValidation = now;
-    await setLicenseData(licenseData);
-
-    return { valid: true, type: expectedType };
-  } catch (e) {
-    console.error("Server-side validation error:", e);
-    // Network error — use stale cache if available
-    if (licenseData.cachedInvalid) {
-      return { valid: false, reason: "Lisans gecersiz / License invalid. Baglantinizi kontrol edin / Check your connection." };
-    }
-    // No cached result — allow but log warning
-    return { valid: true, type: licenseData.licenseType, warning: "Could not validate license online." };
-  }
+  return { valid: false, reason: "Unknown license type." };
 }
 
 // ===== DOWNLOAD LIMIT =====
@@ -445,32 +533,82 @@ async function validateLicenseServerSide() {
 async function checkDownloadLimit() {
   const licenseData = await getLicenseData();
   const licenseType = licenseData?.licenseType;
-  const downloadCount = licenseData?.downloadCount || 0;
 
   if (!licenseType) {
-    return { allowed: false, reason: "Lisans bulunamadi / No license found. Aktive edin / Please activate." };
+    return { allowed: false, reason: "No license found. Please activate." };
   }
 
   if (licenseType === "monthly") {
     return { allowed: true };
   }
 
-  // Both free_trial and daily_trial use the same limit
-  if ((licenseType === "free_trial" || licenseType === "daily_trial") && downloadCount >= TRIAL_LIMIT) {
-    return {
-      allowed: false,
-      reason: `Deneme limiti doldu / Free trial limit reached (${TRIAL_LIMIT} invoices). Aylik plana gecin / Subscribe to Monthly.`
-    };
+  // Free trial - check Supabase count
+  if (licenseType === "free_trial") {
+    if (!licenseData.email) {
+      return { allowed: false, reason: "No email found. Please activate." };
+    }
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(licenseData.email)}&select=invoice_count`, {
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
+        }
+      });
+      const data = await res.json();
+      if (data.length === 0) {
+        return { allowed: false, reason: "Email not found. Please activate." };
+      }
+      const count = data[0].invoice_count || 0;
+      if (count >= TRIAL_LIMIT) {
+        return {
+          allowed: false,
+          reason: `Free trial limit reached (${TRIAL_LIMIT}/${TRIAL_LIMIT}). Upgrade to Monthly.`
+        };
+      }
+      return { allowed: true, remaining: TRIAL_LIMIT - count };
+    } catch (e) {
+      console.error("Supabase limit check error:", e);
+      // Allow on network error but log
+      return { allowed: true, remaining: TRIAL_LIMIT, warning: "Could not check limit online." };
+    }
   }
 
-  return { allowed: true, remaining: TRIAL_LIMIT - downloadCount };
+  return { allowed: true };
 }
 
 async function incrementDownloadCount() {
   const licenseData = await getLicenseData();
-  if (!licenseData) return;
+  if (!licenseData || licenseData.licenseType !== "free_trial" || !licenseData.email) return;
 
-  if (licenseData.licenseType === "free_trial" || licenseData.licenseType === "daily_trial") {
+  // Increment in Supabase
+  try {
+    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(licenseData.email)}&select=invoice_count`, {
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const data = await getRes.json();
+    if (data.length > 0) {
+      const newCount = (data[0].invoice_count || 0) + 1;
+      await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(licenseData.email)}`, {
+        method: "PATCH",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ invoice_count: newCount })
+      });
+      // Also update local count
+      licenseData.downloadCount = newCount;
+      await setLicenseData(licenseData);
+    }
+  } catch (e) {
+    console.error("Supabase increment error:", e);
+    // Fallback: increment locally
     licenseData.downloadCount = (licenseData.downloadCount || 0) + 1;
     await setLicenseData(licenseData);
   }
