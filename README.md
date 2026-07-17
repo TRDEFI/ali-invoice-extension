@@ -24,10 +24,10 @@ A Chrome extension that downloads AliExpress order receipts by date range.
 
 ## Supported Plans
 
-| Plan | Price | Downloads |
-|------|-------|-----------|
-| Free Trial | $0 | 10 invoices |
-| Monthly | $10/mo | Unlimited |
+| Plan | Price | Downloads | Activation |
+|------|-------|-----------|------------|
+| Free Trial | $0 | 10 invoices | Email registration |
+| Monthly | $10/mo | Unlimited | License key (Gumroad) |
 
 ## Permissions
 
@@ -37,7 +37,8 @@ A Chrome extension that downloads AliExpress order receipts by date range.
 | `downloads` | Save receipt PNG files to your computer |
 | `tabs` | Manage AliExpress tab for navigation and message passing |
 | `aliexpress.com/p/order/*` | Access order pages and receipt iframes |
-| `api.gumroad.com` | Validate license key and detect refunds/disputes |
+| `api.gumroad.com` | Validate Monthly license key and detect refunds/disputes |
+| `*.supabase.co` | Free Trial email registration and duplicate-email prevention |
 
 ## Installation (Developer Mode)
 
@@ -65,6 +66,14 @@ git clone https://github.com/TRDEFI/ali-invoice-extension.git
 cd ali-invoice-extension
 # No build step needed — pure JavaScript
 ```
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+**TL;DR:** Fork → Branch → PR → Review → Merge
+
+All pull requests require at least 1 approval before merge.
 
 ## License
 
