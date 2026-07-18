@@ -170,7 +170,6 @@ function init() {
   els.licenseKey = $("license-key");
   els.btnActivateMonthly = $("btn-activate-monthly");
   els.monthlyLabel = $("monthly-label");
-  els.changeLicense = $("change-license");
 
   // Apply translations
   if (els.activateTitle) els.activateTitle.textContent = t.activateTitle;
@@ -199,15 +198,6 @@ function init() {
   els.btnActivate.addEventListener("click", onActivate);
   els.btnActivateMonthly.addEventListener("click", onActivateMonthly);
   els.btnSubscribeMonthly.addEventListener("click", () => chrome.tabs.create({ url: GUMROAD_MONTHLY_URL }));
-
-  if (els.changeLicense) {
-    els.changeLicense.addEventListener("click", (e) => {
-      e.preventDefault();
-      chrome.storage.local.remove("licenseData");
-      els.logEl.textContent = "";
-      showStep("license");
-    });
-  }
 
   const btnExpand = document.getElementById("btn-expand");
   if (btnExpand) {
@@ -488,12 +478,16 @@ function onDownload() {
   showStep("progress");
 }
 
-function onNew() {
+async function onNew() {
   els.logEl.textContent = "";
   chrome.runtime.sendMessage({ type: "clearState" });
   showStep("input");
   els.btnAnalyze.disabled = false;
   els.btnAnalyze.textContent = t.analyzeBtn;
+  const data = await getLicenseData();
+  if (data) {
+    updateLicenseBar(data.licenseType, data.downloadCount || 0);
+  }
 }
 
 function onMessage(msg) {
@@ -504,6 +498,9 @@ function onMessage(msg) {
         showStep("input");
         els.btnAnalyze.disabled = false;
         els.btnAnalyze.textContent = t.analyzeBtn;
+        getLicenseData().then(d => {
+          if (d) updateLicenseBar(d.licenseType, d.downloadCount || 0);
+        });
       }
       break;
 
