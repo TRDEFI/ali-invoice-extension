@@ -40,7 +40,7 @@ const LANG = {
     current: "Current",
     remaining: "remaining",
     invalidEmail: "Please enter a valid email address",
-    emailAlreadyUsed: "This email is already registered. One free trial per email.",
+    emailAlreadyRegistered: "This email is already registered. One free trial per email.",
     noOrders: "Please select both dates",
     dateOrder: "Start date must be before end date",
     noOrdersFound: "No orders found. Make sure AliExpress language is set to English (top-right corner).",
@@ -238,6 +238,19 @@ async function checkLicenseAndInit() {
     }
   }
 
+  // If free_trial, sync count from Supabase
+  if (data.licenseType === "free_trial" && data.email) {
+    try {
+      const limitCheck = await chrome.runtime.sendMessage({ type: "checkDownloadLimitRPC", email: data.email });
+      if (limitCheck && typeof limitCheck.count === "number") {
+        data.downloadCount = limitCheck.count;
+        await setLicenseData(data);
+      }
+    } catch (e) {
+      console.warn("Supabase count sync error on open:", e);
+    }
+  }
+
   // Check current download state — restore correct screen on popup reopen
   try {
     const state = await chrome.runtime.sendMessage({ type: "getState" });
@@ -376,7 +389,7 @@ async function onActivate() {
       }
     } else {
       // Limit reached
-      showLicenseError(t.emailAlreadyRegistered);
+      showLicenseError(t.limitReachedMsg);
     }
   } catch (e) {
     console.error("Activation error:", e);
