@@ -62,6 +62,25 @@ HANDLERS.registerEmail = async (msg) => {
   }
 };
 
+HANDLERS.checkDownloadLimitRPC = async (msg) => {
+  const { email } = msg;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_download_limit`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ user_email: email, max_count: TRIAL_LIMIT })
+    });
+    return await res.json();
+  } catch (e) {
+    console.error("Supabase checkDownloadLimitRPC error:", e);
+    return { allowed: false, reason: "Network error" };
+  }
+};
+
 // ===== ORDER PROCESSING =====
 
 HANDLERS.start = async (msg) => {

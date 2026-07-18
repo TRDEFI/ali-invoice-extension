@@ -346,24 +346,37 @@ async function onActivate() {
   showLicenseError("");
 
   try {
-    // Register email — if already exists, Supabase returns 23505 unique violation
-    const regResult = await chrome.runtime.sendMessage({ type: "registerEmail", email: email });
+    // 1. Check if email exists and has remaining downloads
+    const limitCheck = await chrome.runtime.sendMessage({ type: "checkDownloadLimitRPC", email: email });
 
-    if (regResult && regResult.success) {
-      // Save locally
+    if (limitCheck.allowed) {
+      // Email exists with remaining count → login
       await setLicenseData({
         email: email,
         licenseType: "free_trial",
-        downloadCount: 0,
+        downloadCount: limitCheck.count || 0,
         createdAt: Date.now()
       });
       showStep("input");
-      updateLicenseBar("free_trial", 0);
-    } else if (regResult && regResult.errorCode === "23505") {
-      // Email already registered
-      showLicenseError(t.emailAlreadyRegistered);
+      updateLicenseBar("free_trial", limitCheck.count || 0);
+    } else if (limitCheck.reason === "Email not found") {
+      // New user → register
+      const regResult = await chrome.runtime.sendMessage({ type: "registerEmail", email: email });
+      if (regResult && regResult.success) {
+        await setLicenseData({
+          email: email,
+          licenseType: "free_trial",
+          downloadCount: 0,
+          createdAt: Date.now()
+        });
+        showStep("input");
+        updateLicenseBar("free_trial", 0);
+      } else {
+        showLicenseError(regResult?.error || t.errNetwork);
+      }
     } else {
-      showLicenseError(regResult?.error || t.errNetwork);
+      // Limit reached
+      showLicenseError(t.emailAlreadyRegistered);
     }
   } catch (e) {
     console.error("Activation error:", e);
