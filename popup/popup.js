@@ -356,18 +356,7 @@ async function onActivate() {
   showLicenseError("");
 
   try {
-    // Check if email already exists in Supabase
-    const result = await chrome.runtime.sendMessage({ type: "checkEmail", email: email });
-
-    if (result && result.exists) {
-      // Email already registered
-      showLicenseError(t.emailAlreadyRegistered);
-      els.btnActivate.disabled = false;
-      els.btnActivate.textContent = t.activateBtn;
-      return;
-    }
-
-    // Register new email in Supabase
+    // Register email — if already exists, Supabase returns 23505 unique violation
     const regResult = await chrome.runtime.sendMessage({ type: "registerEmail", email: email });
 
     if (regResult && regResult.success) {
@@ -380,6 +369,9 @@ async function onActivate() {
       });
       showStep("input");
       updateLicenseBar("free_trial", 0);
+    } else if (regResult && regResult.errorCode === "23505") {
+      // Email already registered
+      showLicenseError(t.emailAlreadyRegistered);
     } else {
       showLicenseError(regResult?.error || t.errNetwork);
     }

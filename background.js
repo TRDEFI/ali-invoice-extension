@@ -31,24 +31,6 @@ const HANDLERS = {};
 
 // ===== EMAIL OPERATIONS =====
 
-HANDLERS.checkEmail = async (msg) => {
-  const { email } = msg;
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(email)}&select=id`, {
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json"
-      }
-    });
-    const data = await res.json();
-    return { exists: data.length > 0 };
-  } catch (e) {
-    console.error("Supabase checkEmail error:", e);
-    return { exists: false, error: e.message };
-  }
-};
-
 HANDLERS.registerEmail = async (msg) => {
   const { email } = msg;
   try {
@@ -71,8 +53,7 @@ HANDLERS.registerEmail = async (msg) => {
     }
     const err = await res.json();
     if (err.code === "23505") {
-      // Unique constraint violation - email already exists
-      return { success: false, error: "Email already registered" };
+      return { success: false, errorCode: "23505", error: "Email already registered" };
     }
     return { success: false, error: err.message || "Registration failed" };
   } catch (e) {
@@ -542,34 +523,25 @@ async function checkDownloadLimit() {
     return { allowed: true };
   }
 
-  // Free trial - check Supabase count
+  // Free trial - check via RPC
   if (licenseType === "free_trial") {
     if (!licenseData.email) {
       return { allowed: false, reason: "No email found. Please activate." };
     }
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(licenseData.email)}&select=invoice_count`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_download_limit`, {
+        method: "POST",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
           "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
           "Content-Type": "application/json"
-        }
+        },
+        body: JSON.stringify({ user_email: licenseData.email, max_count: TRIAL_LIMIT })
       });
-      const data = await res.json();
-      if (data.length === 0) {
-        return { allowed: false, reason: "Email not found. Please activate." };
-      }
-      const count = data[0].invoice_count || 0;
-      if (count >= TRIAL_LIMIT) {
-        return {
-          allowed: false,
-          reason: `Free trial limit reached (${TRIAL_LIMIT}/${TRIAL_LIMIT}). Upgrade to Monthly.`
-        };
-      }
-      return { allowed: true, remaining: TRIAL_LIMIT - count };
+      const result = await res.json();
+      return result;
     } catch (e) {
       console.error("Supabase limit check error:", e);
-      // Allow on network error but log
       return { allowed: true, remaining: TRIAL_LIMIT, warning: "Could not check limit online." };
     }
   }
@@ -581,34 +553,25 @@ async function incrementDownloadCount() {
   const licenseData = await getLicenseData();
   if (!licenseData || licenseData.licenseType !== "free_trial" || !licenseData.email) return;
 
-  // Increment in Supabase
+  // Increment via RPC
   try {
-    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(licenseData.email)}&select=invoice_count`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_invoice_count`, {
+      method: "POST",
       headers: {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
         "Content-Type": "application/json"
-      }
+      },
+      body: JSON.stringify({ user_email: licenseData.email })
     });
-    const data = await getRes.json();
-    if (data.length > 0) {
-      const newCount = (data[0].invoice_count || 0) + 1;
-      await fetch(`${SUPABASE_URL}/rest/v1/ext_users?email=eq.${encodeURIComponent(licenseData.email)}`, {
-        method: "PATCH",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ invoice_count: newCount })
-      });
-      // Also update local count
+    const newCount = await res.json();
+    if (typeof newCount === "number") {
       licenseData.downloadCount = newCount;
       await setLicenseData(licenseData);
     }
   } catch (e) {
     console.error("Supabase increment error:", e);
-    // Fallback: increment locally
+    // Fallback: increment locally only
     licenseData.downloadCount = (licenseData.downloadCount || 0) + 1;
     await setLicenseData(licenseData);
   }
